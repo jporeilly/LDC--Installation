@@ -13,18 +13,93 @@
     # Check Nodes
     - name: Ping Nodes
       ping:
-      tags: ['info']
+      tags: 
+        - info
 
     # Update packages
     - name: Update all packages
       apt: upgrade=dist force_apt_get=yes
-      tags: [install]
+      tags: 
+        - install
     
     # Check if reboot is required
     - name: Check if a reboot is needed for Debian and Ubuntu boxes
       register: reboot_required_file
       stat: path=/var/run/reboot-required get_md5=no  
 
+    # Check for previous Kubespray download
+    - name: Check if {{ release }} is available
+      stat:
+        path: "{{ installer_home }}/{{ release }}"
+      register: kubespray
+      tags: 
+        - info
+        - install
+
+    - debug: 
+        msg: "Kubespray Exists: {{ kubespray.stat.exists }}"
+      tags: 
+        - info      
+  
+    # Downloads kubespray into the mounted installer folder.
+    - name: Get {{ release }} - if required
+      get_url:
+        url: 'https://github.com/kubernetes-sigs/kubespray/archive/refs/heads/{{version}}.zip'
+        dest: "{{ installer_home }}/{{release}}.zip"
+      when: kubespray.stat.exists == false
+      tags: 
+        - install
+ 
+    # Unarchive kubespray into the mounted installer folder
+    - name: Unarchive {{ release }}
+      unarchive:
+        src: "{{ installer_home }}/{{release}}.zip"
+        dest: "{{ installer_home }}"
+      when: kubespray.stat.exists == false
+      tags: 
+        - install
+    
+    # Check Kubespray has unarchived
+    - name: Re-Check if {{ release }} has extracted
+      stat:
+        path: "{{ installer_home }}/{{ release }}"
+      tags: 
+        - install
+
+    - debug: 
+        msg: "{{ release }} has succesfully installed.."
+      tags: 
+        - install 
+  
+    # Update pip
+    - name: Update pip dependancies
+      pip:
+        requirements: requirements.txt
+        chdir: "{{ installer_home }}/{{ release }}"
+      tags: 
+        - install
+    
+    # May need to update path  
+    - name: Copy extra-vars.yml
+      copy:
+        src: "extra-vars.yml"
+        dest: "{{ installer_home }}/{{ release }}/extra-vars.yml"
+      tags: 
+        - install
+
+    # May need to update path 
+    - name: Copy hosts-skytap.yml
+      copy:
+        src: "hosts-skytap.yml"
+        dest: "{{ installer_home }}/{{ release }}/hosts-skytap.yml"
+      tags: 
+        - install
+
+    - debug: 
+        msg: "Config files copied over: {{ release }}"
+      tags: 
+        - install
+      
     # Reboot iniated by Ansible
     - name: Reboot the Debian or Ubuntu server
       reboot:
@@ -34,85 +109,25 @@
         pre_reboot_delay: 0
         post_reboot_delay: 30
         test_command: uptime
-      when: reboot_required_file.stat.exists 
+      when: reboot_required_file.stat.exists
 
-    # Check for previous Kubespray download
-    - name: Check if kubespray is available
-      stat:
-        path: "{{ installer_home }}/{{ release }}"
-      register: kubespray
-      tags: [info, install]
-
-    - debug: 
-        msg: "Kubspray Exists: {{ kubespray.stat.exists }}"
-      tags: [info]      
-  
-    # Downloads kubespray into the mounted playbooks folder
-    # This is therefore, persisted on your local filesystem
-    - name: Get Kubespray if required
-      get_url:
-        url: 'https://github.com/kubernetes-sigs/kubespray/archive/refs/heads/{{version}}.zip'
-        dest: "{{ installer_home }}/{{release}}.zip"
-      when: kubespray.stat.exists == false
-      tags: [install]
- 
-    # Extracts kubespray into the mounted playbooks folder
-    # This is therefore, persisted on your local filesystem
-    - name: Unarchive Kubespray-{{ version }}
-      unarchive:
-        src: "{{ installer_home }}/{{release}}.zip"
-        dest: "{{ installer_home }}"
-      when: kubespray.stat.exists == false
-      tags: [install]
-    
-    # Update pip
-    - name: Update pip dependancies
-      pip:
-        requirements: requirements.txt
-        chdir: "{{ installer_home }}/{{release}}"
-      tags: [cluster]
-    
-    # Check Kubespray has unarchived
-    - name: Re-Check if Kubespray has extracted
-      stat:
-        path: "{{ installer_home }}/{{release}}"
-      tags: [install]
-
-    - debug: 
-        msg: "Kubspray Exists: {{ release }}"
-      tags: [install]  
-
-    # May need to update path  
-    - name: Copy extra-vars.yml
-      copy:
-        src: "extra-vars.yml"
-        dest: "{{ installer_home }}/{{release}}/extra-vars.yml"
-      tags: [install]
-
-    # May need to update path 
-    - name: Copy hosts-skytap.yml
-      copy:
-        src: "hosts-skytap.yml"
-        dest: "{{ installer_home }}/{{release}}/hosts-skytap.yml"
-      tags: [install]
-
-    - debug: 
-        msg: "Config files copied over: {{release}}"
-      tags: [install]
-      
     # Run the kubespray playbook on the hosts
     # - include: "{{ installer_home }}/{{release}}/cluster.yml"
 
     - debug:
         msg:
-          - "kubespray is available in {{ installer_home }}/{{release}}"
-          - "cd {{ installer_home }}/{{release}}"
+          - "kubespray is available in {{ installer_home }}/{{ release }}"
+          - "cd {{ installer_home }}/{{ release }}"
           - "ansible-playbook -b -v -i hosts-skytap.yml --extra-vars='@extra-vars.yml' cluster.yml"
       when: kubespray.stat.exists == false
-      tags: [info, install]
-    
+      tags: 
+        - install
+        - info
+
     - debug:
         msg:
-          - "kubespray download and unpack failed!"
+          - {{ release }} download and unpack failed!"
       when: kubespray.stat.exists == true
-      tags: [info, install]
+      tags: 
+        - install
+        - info

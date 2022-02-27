@@ -12,7 +12,7 @@
     ansible_user: k8s
     change_dns: true
     dns_server: 10.0.0.254 # SkyTap DNS
-    ansible_python_interpreter: /usr/bin/python
+    ansible_python_interpreter: /usr/bin/python3
  
   tasks:
   # Ping Nodes
@@ -22,14 +22,18 @@
 
   # Update packages
    - name: Update all packages
-     yum:
-       name: '*'
-     tags: [install]  
+     apt: upgrade=dist force_apt_get=yes
+     tags: [install]
+    
+   # Check if reboot is required
+   - name: Check if a reboot is needed for Debian and Ubuntu boxes
+     register: reboot_required_file
+     stat: path=/var/run/reboot-required get_md5=no   
 
-  # Install Utils
+  # Install Commmon Utils
    - name: Install Common Packages
      package:
-      name: [net-tools,bash-completion,wget,curl,yum-utils,lvm2,device-mapper-persistent-data]
+      name: [net-tools,bash-completion,wget,curl,apt-utils,lvm2,device-mapper-persistent-data]
       state: present
      ignore_errors: True
      tags: [install]
