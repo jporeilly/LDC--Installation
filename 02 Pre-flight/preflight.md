@@ -25,10 +25,10 @@ The following playbooks are run:
 
 #### download_kubespray.yml
 * Create the release directory
-* Unpacks kubespray-2.14
+* Unpacks kubespray-2.18
 
 #### cluster.yml
-* installs and configures k8s-1.18.10
+* installs and configures k8s-1.22.5
 
 ---
 
@@ -92,6 +92,27 @@ Kubespray provides:
 * a highly available cluster
 * composable attributes
 * support for most popular Linux distributions
+
+#### Kubespray Components
+* Kubernetes v1.22.5
+* Etcd 3.5.0
+* Docker 20.10
+* Containerd 1.5.8
+* CRI-O 1.22
+* CNI-plugins v1.0.1
+* Calico v3.20.3
+* Cilium 1.9.11
+* Flannel 0.15.1
+* Kube-ovn 1.8.1
+* Kube-Router 1.3.2
+* Multus 3.8
+* Weave 2.8.1
+* CoreDNS 1.8.0
+* Nodelocaldns 1.21.1
+* Helm 3.7.1
+* Nginx-ingress 1.0.4
+* Cert-manager 1.5.4
+* Kubernetes Dashboard v2.4.0
 
 ``run the download_kubespray.yml playbook:``
 ```
