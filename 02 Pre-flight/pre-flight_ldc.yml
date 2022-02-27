@@ -10,26 +10,29 @@
     # Ping Nodes
     - name: Ping
       ping:
-      tags: [info]
+      tags: 
+       - info
 
-    # Update all packages
-    - name: Yum update
-      raw: yum update -y
-      when: ansible_distribution == "CentOS"
-      tags: [install]
-
-    # Install extra packages
-    - name: Yum install epel
-      raw: yum install -y epel-release
-      when: ansible_distribution == "CentOS"
-      tags: [install, never]
+    # Update packages
+    - name: Update all packages
+      apt: upgrade=dist force_apt_get=yes
+      tags:
+        - install
+    
+    # Check if reboot is required
+    - name: Check if a reboot is needed for Debian and Ubuntu boxes
+      register: reboot_required_file
+      stat: path=/var/run/reboot-required get_md5=no
+      tags:
+       - install 
     
     # Configure various Linux networking and system settings
     - name: Get /etc/sysctl.conf
       shell: cat /etc/sysctl.conf | grep max_map_count 
       ignore_errors: true
       register: max_map_count
-      tags: [elastic]
+      tags: 
+        - elastic
 
     # Elasticsearch requires a max map count > 262144
     # Details: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
@@ -42,7 +45,8 @@
       when: 
         - max_map_count.stdout | int < 262144 
         # May need check if large enough 
-      tags: [elastic]
+      tags: 
+        - elastic
 
     # Retrieve sudoers path
     - name: Get sudoers secure_path
@@ -61,7 +65,8 @@
       shell: cat /etc/dhcp/dhclient.conf | grep domain-name-servers | grep {{ dns_server }}
       ignore_errors: true
       register: dhcp_nameserver_entry
-      tags: [dhcp]
+      tags: 
+        - dhcp
 
     # dhclient.conf will rebuild the /etc/resolv.conf file on reboot.
     # Leverage the private DNS lookup of the hosting provider
@@ -82,8 +87,9 @@
         post_reboot_delay: 30
         test_command: whoami
       when: 
-        - dhcp_update is not skipped 
+        - dhcp_update is not skipped
 
+    # Ping servers
     - name: Ping servers in hosts.yml after reboot
       ping:
       when: dhcp_update is defined  
@@ -101,7 +107,8 @@
       shell: helm version
       register: helm_version
       ignore_errors: true
-      tags: [helm]
+      tags: 
+        - helm
 
     - name: Get Helm
       get_url:
@@ -109,7 +116,8 @@
          dest: ./get_helm.sh
          mode: 700
       when: helm_version.rc != 0
-      tags: [helm]
+      tags: 
+        - helm
        
     - name: Install Helm
       shell: ./get_helm.sh
@@ -124,18 +132,22 @@
   become_method: sudo
   gather_facts: false
   any_errors_fatal: true
-  tags: kubeconfig
+  tags: 
+    - kubeconfig
   
   tasks:
-    - name: Create ~/.kube directory (root on master1)
+    # Create kube directory on master node 01
+    - name: Create ~/.kube directory (root on master node 01)
       file:
         path: ~/.kube
         state: directory
       become: false
-      
+
+    # Copy over the kube/config to /home/installer  
     - name: Copy config to {{ ansible_user }} home
       shell: "cp ~/.kube/config /home/{{ ansible_user }}/.kube/"
 
+    # Take ownership of kube/config
     - name: Change config ownership to {{ ansible_user }}
       shell: "chown -R {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config"
 
@@ -148,58 +160,74 @@
   become_method: sudo
   gather_facts: true
   any_errors_fatal: true
-  tags: kubeconfig
+  tags: 
+    - kubeconfig
   
   tasks:
+    # Install Jq
     - name: Install jq 
       apt:
         name: jq
       when: ansible_distribution == "Ubuntu"
-
-    - name: Install jq
-      yum:
-        name: jq
-      when: ansible_distribution == "CentOS"
-
+    
+    # Install kubectl
     - name: Install kubectl
-      raw: snap install kubectl --channel=1.18/stable --classic
+      raw: sudo snap install kubectl --classic
+      tags:
+        - kubectl
 
+    # Configure Installer to use kubectl
     - name: Get local user home
       local_action: command echo $HOME
       register: local_home
       become: false
-      tags: [info]
+      tags: 
+        - kubectl
 
+    # Create home/kube on Ansible Controller
     - name: Create ~/.kube directory (root on Ansible Controller)
       file:
         path: ~/.kube
         state: directory
       become: false
-
+      tags: 
+        - kubectl
+    
+    # Transfer kube / config from master root to Installer on Ansible Controller
     - name: Transfer config file from master cluster to 'root' .kube
       raw: scp -i {{ ansible_ssh_private_key_file }} {{ ansible_user }}@{{ groups['kube-master'][0] }}:/home/{{ ansible_user }}/.kube/config ~/.kube/config
       become: false
+      tags: 
+        - kubectl
 
     # Now get config from {{ local_home.stdout }}
     - name: Create ~./kube directory
       file:
         path: ~/.kube
         state: directory
-
+      tags:
+        - kubectl  
+    
+    # Copy kube/config to /home/installer
     - name: Copy config from root to home
       shell: "cp {{ local_home.stdout }}/.kube/config ~/.kube"
+      tags:
+        - kubectl
 
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
       shell: "kubectl get nodes"
       register: nodes
       become: false
+      tags: 
+        - kubectl
 
     # Display the Nodes
     - name: Show output from command --> kubectl get nodes
       debug:
         msg: "{{ nodes.stdout_lines }}"
 
+    # Check conectivity Ansible --> Cluster
     - name: Check kubectl connectivity from installer node to cluster
       shell: "kubectl get pods -n kube-system"
       register: pods
@@ -223,9 +251,10 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_home: /installers/docker
-    
-  any_errors_fatal: true
+    any_errors_fatal: true
+
   tasks:
+    # Create a non-root Docker Group (Best Practice)
     - name: Create group for non-root docker
       shell: |
         addgroup docker;
@@ -235,7 +264,8 @@
       shell: which docker
       ignore_errors: true
       register: docker_exists
-      tags: [info]
+      tags: 
+        - info
       
     - name: Install Docker
       apt: 
