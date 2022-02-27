@@ -1,0 +1,110 @@
+# Preflight - Infrastructure 
+- name: Configure Cluster Nodes
+  hosts: "{{ groups['kube-node'] }}"
+  become: true
+  become_method: sudo
+  become_user: root
+  gather_facts: true
+  any_errors_fatal: true
+  vars:
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+    ansible_ssh_private_key_file_name: "id_rsa"
+    ansible_user: k8s
+    change_dns: true
+    dns_server: 10.0.0.254 # SkyTap DNS
+    ansible_python_interpreter: /usr/bin/python
+ 
+  tasks:
+  # Ping Nodes
+   - name: Ping Nodes
+     ping:
+     tags: [info]
+
+  # Update packages
+   - name: Update all packages
+     yum:
+       name: '*'
+     tags: [install]  
+
+  # Install Utils
+   - name: Install Common Packages
+     package:
+      name: [net-tools,bash-completion,wget,curl,yum-utils,lvm2,device-mapper-persistent-data]
+      state: present
+     ignore_errors: True
+     tags: [install]
+
+   # Selinux must be forced to Python2 it does not work in Python3 state: latest
+   - name: Disable SELinux
+     selinux:
+       state: disabled
+     register: selinux_status
+     tags: [selinux]
+
+   # Check Selinx status   
+   - name: Check SELINUX Reboot Status
+     debug:  
+       msg:
+       - "Status= => {{ selinux_status.state }}"
+       - "Reboot? => {{ selinux_status.reboot_required }}"
+     tags: [selinux]
+   
+   # Not really required as tasks carried out by Kubespray
+   - name: Disable SWAP (1/2)
+     shell: |
+      swapoff -a
+
+   - name: Disable SWAP in fstab (2/2)
+     replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+.*)$'
+        replace: '# \1'
+
+   # easy option :)  Otherwise open Master / Worker ports for network - Calico 
+   - name: Turn off firewall for kubernetes Install
+     command: systemctl disable firewalld
+
+   # Uncomment if you havent manually edited
+   #- replace: wheel group no password
+   #   path: /etc/sudoers
+   #   regexp: '^#\s*%wheel\s*ALL=\(ALL\)\s*NOPASSWD:\s*ALL$'
+   #   replace: '%wheel        ALL=(ALL)       NOPASSWD: ALL'
+
+   #- replace: wheel group all commands
+   #  path: /etc/sudoers
+   #   regexp: '^%wheel\s*ALL=\(ALL\)\s*ALL$'
+   #   replace: '# %wheel  ALL=(ALL)       ALL'
+   
+   # Writes out Hostnames to act as local DNS -  not really required as there's SkyTap DNS
+   - lineinfile:
+      path: /etc/sysconfig/network
+      state: present
+      line: 'HOSTNAME={{inventory_hostname}}.local'
+
+   - lineinfile:
+      path: /etc/hosts
+      state: present
+      line: '{{ansible_default_ipv4.address}}   {{inventory_hostname}}.local   {{inventory_hostname}}'
+   
+   # Check for DNS servers
+   - name: Get dhcp/dhclient.conf
+     shell: cat /etc/dhcp/dhclient.conf | grep domain-name-servers
+     ignore_errors: true
+     register: dhcp_nameserver_entry
+
+   # This file will rebuild the /etc/resolv.conf file on reboot.   
+   # Leverage the private DNS lookup of SkyTap
+   - name: Override current DNS entries
+     shell: |
+        cp /etc/dhcp/dhclient.conf /etc/dhcp/dhclient.conf.{{ 10000 | random }}.bak
+        echo "supersede domain-name-servers {{ dns_server }};" >> /etc/dhcp/dhclient.conf
+     register: dhcp_update       
+     when: change_dns and ("dhcp_nameserver_entry is not defined" or "'{{ dns_server }}' not in dhcp_nameserver_entry.stdout")
+   
+   # Reboot the Nodes
+   - name: Reboot the Nodes with all defaults
+     shell: sleep 5 && reboot
+     async: 1
+     poll: 0
+     when: selinux_status.reboot_required == true or dhcp_update is defined
+     tags: [reboot]
