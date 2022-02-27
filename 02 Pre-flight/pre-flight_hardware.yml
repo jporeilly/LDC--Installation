@@ -48,7 +48,8 @@
      selinux:
        state: disabled
      register: selinux_status
-     tags: [selinux]
+     tags: 
+       - selinux
 
    # Check Selinx status   
    - name: Check SELINUX Reboot Status
@@ -56,7 +57,8 @@
        msg:
        - "Status= => {{ selinux_status.state }}"
        - "Reboot? => {{ selinux_status.reboot_required }}"
-     tags: [selinux]
+     tags: 
+       - selinux
    
    # Not really required as tasks carried out by Kubespray
    - name: Disable SWAP (1/2)
@@ -68,21 +70,23 @@
         path: /etc/fstab
         regexp: '^([^#].*?\sswap\s+.*)$'
         replace: '# \1'
+        tags: 
+          - swap
 
    # easy option :)  Otherwise open Master / Worker ports for network - Calico 
    - name: Turn off firewall for kubernetes Install
      command: systemctl disable firewalld
 
    # Uncomment if you havent manually edited
-   #- replace: wheel group no password
+   #- replace: sudo group no password
    #   path: /etc/sudoers
-   #   regexp: '^#\s*%wheel\s*ALL=\(ALL\)\s*NOPASSWD:\s*ALL$'
-   #   replace: '%wheel        ALL=(ALL)       NOPASSWD: ALL'
+   #   regexp: '^#\s*%sudo\s*ALL=\(ALL\)\s*NOPASSWD:\s*ALL$'
+   #   replace: '%sudo        ALL=(ALL)       NOPASSWD: ALL'
 
-   #- replace: wheel group all commands
+   #- replace: sudo group all commands
    #  path: /etc/sudoers
-   #   regexp: '^%wheel\s*ALL=\(ALL\)\s*ALL$'
-   #   replace: '# %wheel  ALL=(ALL)       ALL'
+   #   regexp: '^%sudo\s*ALL=\(ALL\)\s*ALL$'
+   #   replace: '# %sudo  ALL=(ALL)       ALL'
    
    # Writes out Hostnames to act as local DNS -  not really required as there's SkyTap DNS
    - lineinfile:
@@ -110,10 +114,15 @@
      register: dhcp_update       
      when: change_dns and ("dhcp_nameserver_entry is not defined" or "'{{ dns_server }}' not in dhcp_nameserver_entry.stdout")
    
-   # Reboot the Nodes
-   - name: Reboot the Nodes with all defaults
-     shell: sleep 5 && reboot
-     async: 1
-     poll: 0
+    # Reboot iniated by Ansible
+   - name: Reboot the Debian or Ubuntu server
+     reboot:
+        msg: "Reboot initiated by Ansible due to kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
      when: selinux_status.reboot_required == true or dhcp_update is defined
-     tags: [reboot]
+     tags: 
+       - reboot
