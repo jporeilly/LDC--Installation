@@ -32,7 +32,7 @@ Domain Name: skytap.example
 | LDC 7.0 Master Node 1     | master-node-01    | 10.0.0.101  | Unbuntu 20.04    |    
 | LDC 7.0 Master Node 2     | master-node-02    | 10.0.0.102  | Unbuntu 20.04    |
 | LDC 7.0 Master Node 3     | master-node-3     | 10.0.0.103  | Unbuntu 20.04    |
-| Ansible Controller        | installer         | 10.0.0.99   | Unbuntu 20.04    | 
+| Ansible Controller        | installer         | 10.0.0.02   | Unbuntu 20.04    | 
 |
 
 VM sequence: 
@@ -44,7 +44,7 @@ VM sequence:
 
 ---
 
-### <font color='red'>LDC 1.2.0 Master / Worker Nodes</font>  
+### <font color='red'>LDC 7.0 Master / Worker Nodes</font>  
 
 These servers were deployed as Unbuntu 20.04 LTS server images.
 Each of the nodes in the cluster has been configured with a 'k8s' user with sudo priviliges.
@@ -53,25 +53,25 @@ Each of the nodes in the cluster has been configured with a 'k8s' user with sudo
 
 ``update all nodes:``
 ```
-sudo yum check-update
-sudo yum clean all
+sudo apt update
+sudo apt upgrade
+sudo apt autoremove
 sudo reboot
-sudo yum update
 ```
 
 ---
 
-<em>add a 'k8s' user to the wheel group (log in as root):</em>  
+<em>add a 'k8s' user to the sudo group (log in as root):</em>  
 The k8s account has previously been created. 
 
-``add k8s to wheel group:``
+``add k8s to sudo group:``
 ```
 sudo -i
-usermod -aG wheel k8s
+usermod -aG sudo k8s
 ```
 ``check the assigned groups:``
 ```
-groups
+groups k8s
 ```
 ``or for the ids:``
 ```
@@ -79,6 +79,7 @@ id k8s
 ```
 ``check 'k8s' user on any master node:``
 ```
+su - k8s
 ls /home
 ```
 
@@ -89,12 +90,12 @@ Nano is a text editor.
 
 ``install editor (nano or vim):``
 ```
-sudo yum install -y nano
+sudo apt install nano
 ```
 
 ---
 
-<em>allow users in group wheel to run all commands without password:</em>  
+<em>allow users in group sudo to run all commands without password:</em>  
 
 ``edit sudoers:``
 ```
@@ -102,10 +103,10 @@ sudo nano /etc/sudoers
 ```
 ```
 ## Allows users in group wheel to run all commands
-%wheel  ALL=(ALL)     ALL
+%sudo  ALL=(ALL)     ALL
 
 ## Without password
-%wheel  ALL=(ALL)     NOPASSWD:  ALL
+%sudo  ALL=(ALL)     NOPASSWD:  ALL
 ```
 ``save:``
 ```
@@ -340,23 +341,23 @@ Installation of the Foundry Platform and LDOS requires that the images are uploa
 
 #### <font color='red'>HA-Proxy - 2.6</font>  
 
-This server has been configured with an 'pentaho' user with sudo privileges.  
+This server has been configured with an 'haproxy' user with sudo privileges.  
 
-<font color='green'>Pentaho server has been installed and configured.</font>  
+<font color='green'>HA Proxy server has been installed and configured.</font>  
 
 ``update (log in as root):``
 ```
 apt update -y
 ```
-``add an 'pentaho' user:``
+``add an 'haproxy' user:``
 ```
-adduser pentaho
+adduser haproxy
 ```
 Note: password is 'lumada'  
 
-``add 'pentaho' to sudo group:``
+``add 'haproxy' to sudo group:``
 ```
-sudo usermod -aG sudo pentaho
+sudo usermod -aG sudo haproxy
 ```
 ``check the assigned groups:``
 ```
@@ -364,9 +365,9 @@ groups
 ```
 ``or for the ids:``
 ```
-id pentaho
+id haproxy
 ```
-``check 'pentaho' user:``
+``check 'haproxy' user:``
 ```
 ls /home
 ```
@@ -412,7 +413,7 @@ Install the latest HAProxy using a PPA.
 ``enable PPA (log in as root):``
 ```
  apt-get install --no-install-recommends software-properties-common
- add-apt-repository ppa:vbernat/haproxy-2.5
+ add-apt-repository ppa:vbernat/haproxy-2.6
 ```
 ``then install:``
 ```
@@ -448,7 +449,7 @@ sudo mv haproxy.cfg  haproxy.cfg.bak
 ```
 ``copy over 01-Infrastructure/01-Environment/haproxy.cfg to /etc/haproxy:``
 ```
-cd /installers/LDOS-Workshop/
+cd /installers/LDC-Workshop/
 
 ```
 ``restart haproxy:``
@@ -463,7 +464,7 @@ sudo systemctl restart haproxy
 
 #### <font color='red'>Data Volume</font>  
 
-You will require a /data volume which gets mapped to LDOS, as a Pentaho File Repository.
+You will require a /data volume which gets mapped to LDC, as a File Repository.
 NFS server has already been installed.
 
 ---
