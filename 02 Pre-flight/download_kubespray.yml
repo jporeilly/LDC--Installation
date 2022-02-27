@@ -1,12 +1,12 @@
-# Download & Install Kubespray 2.14 - Kubernetes 1.18
+# Download & Install Kubespray 2.18 - Kubernetes 1.22.5
 - name: Install Kubespray
   hosts: "{{ groups['installer'][0] }}"
   become: false
   gather_facts: true
   vars:
     installer_home: /installers
-    release: kubespray-release-2.14
-    version: release-2.14
+    release: kubespray-release-2.18
+    version: release-2.18
     ansible_python_interpreter: /usr/bin/python3
   
   tasks:
@@ -17,9 +17,24 @@
 
     # Update packages
     - name: Update all packages
-      yum:
-       name: '*'
+      apt: upgrade=dist force_apt_get=yes
       tags: [install]
+    
+    # Check if reboot is required
+    - name: Check if a reboot is needed for Debian and Ubuntu boxes
+      register: reboot_required_file
+      stat: path=/var/run/reboot-required get_md5=no  
+
+    # Reboot iniated by Ansible
+    - name: Reboot the Debian or Ubuntu server
+      reboot:
+        msg: "Reboot initiated by Ansible due to kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file.stat.exists 
 
     # Check for previous Kubespray download
     - name: Check if kubespray is available

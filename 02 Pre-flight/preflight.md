@@ -69,8 +69,8 @@ sudo cat extra-vars.yml
 ``edit the env.properties file and enter the following values:``
 ```
 installer_node_hostname=installer.skytap.example
-installer_node_ip=10.0.0.99
-cluster_node_hostname=pentaho-server-1.skytap.example
+installer_node_ip=10.0.0.02
+cluster_node_hostname=ha-proxy.skytap.example
 cluster_node_ip=10.0.0.1
 pem_file_name=id_rsa
 ansible_user=k8s
