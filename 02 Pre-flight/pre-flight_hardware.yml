@@ -18,17 +18,21 @@
   # Ping Nodes
    - name: Ping Nodes
      ping:
-     tags: [info]
+     tags: 
+       - info
 
   # Update packages
    - name: Update all packages
      apt: upgrade=dist force_apt_get=yes
-     tags: [install]
+     tags:
+       - install
     
    # Check if reboot is required
    - name: Check if a reboot is needed for Debian and Ubuntu boxes
      register: reboot_required_file
-     stat: path=/var/run/reboot-required get_md5=no   
+     stat: path=/var/run/reboot-required get_md5=no
+     tags:
+       - install  
 
   # Install Commmon Utils
    - name: Install Common Packages
@@ -36,7 +40,8 @@
       name: [net-tools,bash-completion,wget,curl,apt-utils,lvm2,device-mapper-persistent-data]
       state: present
      ignore_errors: True
-     tags: [install]
+     tags: 
+       - install
 
    # Selinux must be forced to Python2 it does not work in Python3 state: latest
    - name: Disable SELinux

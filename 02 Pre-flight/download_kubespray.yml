@@ -25,7 +25,9 @@
     # Check if reboot is required
     - name: Check if a reboot is needed for Debian and Ubuntu boxes
       register: reboot_required_file
-      stat: path=/var/run/reboot-required get_md5=no  
+      stat: path=/var/run/reboot-required get_md5=no 
+      tags:
+       - install
 
     # Check for previous Kubespray download
     - name: Check if {{ release }} is available
@@ -112,8 +114,7 @@
       when: reboot_required_file.stat.exists
 
     # Run the kubespray playbook on the hosts
-    # - include: "{{ installer_home }}/{{release}}/cluster.yml"
-
+    # - include: "{{ installer_home }}/{{ release }}/cluster.yml"
     - debug:
         msg:
           - "kubespray is available in {{ installer_home }}/{{ release }}"
@@ -126,7 +127,7 @@
 
     - debug:
         msg:
-          - {{ release }} download and unpack failed!"
+          - "{{ release }} download and unpack failed!"
       when: kubespray.stat.exists == true
       tags: 
         - install
