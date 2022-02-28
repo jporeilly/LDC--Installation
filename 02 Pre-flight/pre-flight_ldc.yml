@@ -314,7 +314,7 @@
       ignore_errors: true
       when: docker_exists is defined 
 
-    # 
+    # Create directory for Docker daemon config
     - name: Create /etc/docker directory
       ignore_errors: true
       file:
@@ -323,14 +323,19 @@
       with_items:
         - /etc/docker
       when: docker_exists is failed
-
+      tags: 
+        - install
+    
+    # Create Docker daemon config
     - name: Create Docker daemon.json and data root
       shell: |
          echo '{ "data-root" : "{{ docker_home }}" }' > /etc/docker/daemon.json
          mv /var/lib/docker /installers
       when: docker_exists is failed 
-      tags: [install, docker]
+      tags: 
+        - install
 
+    # Assign permissions to Docker group
     - name: Non-root Docker directories
       shell: |
         chgrp docker "{{ item }}"
@@ -341,7 +346,8 @@
         - /installers/docker
       when: docker_exists is failed 
 
-    - name: Start docker
+    # Start Docker
+    - name: Start Docker
       shell: systemctl start docker
 
     - name: Check Root change
@@ -349,7 +355,8 @@
       register: docker_root
       failed_when: '"{{ docker_home }}" not in docker_root.stdout'
 
-- name: Configure Registry
+# Check Docker group/user
+- name: Check Docker group/user
   hosts: "{{ groups['installer'][0] }}"
   become: false
   gather_facts: true
@@ -359,7 +366,7 @@
   tags: 
     - registry
     - continue
-  # Only when the Registry is installed on the installer node.
+  # Only when the Registry is installed on the Ansible node.
   # Otherwise, its assumed the registry is external and already defined.
 
   tasks:
@@ -381,14 +388,21 @@
             - "then re-run adding the optional tag '-t continue'.  This will pick up the installation at 'Configure Regsitry'."  
         failed_when: '"(docker)" not in output.stdout_lines|string'
       when: '"{{ master_node_for_registry }}" == "{{ groups[''installer''][0] }}"'
+# Restart Docker
+# User: Installer
+# Re-run playbook with -t continue
 
+# Configure Docker Regsitry
 - name: Configure Registry
   hosts: "{{ groups['installer'][0] }}"
   become: false
   gather_facts: true
-  tags: [never, continue]
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  tags: 
+    - never
+    - continue
+
 
   # This configures a self-signed private Docker Registry, i.e.  the cerificate to authorize users to access the Registry is self-signed. 
   # Every Docker daemon needs to trust that certificate, so copied over to the Cluster Nodes.
@@ -401,8 +415,10 @@
           # openssl 1.1.1
           openssl req -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key -x509 -days 365 -out certs/domain.crt -subj "/CN=dockerhost" -addext "subjectAltName=DNS:{{ groups['installer'][0] }}"
           # openssl req -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key -x509 -days 365 -out certs/domain.crt -subj "/CN={{ groups['installer'][0] }}"
-        tags: [certs]
-
+        tags: 
+          - certs
+      
+      # Set Registry as insecure
       - name: Allow self-signed Registry
         shell: |
           sed -i "s! }!, \"insecure-registries\" : [\"{{ groups['installer'][0] }}:5000\"]}!1" /etc/docker/daemon.json
@@ -411,7 +427,8 @@
         pip: 
           name: docker
 
-      - name: Build registry service
+      # Run Docker Regsitry container
+      - name: Build Docker Registry service
         docker_container:
           name: registry
           image: registry:2
@@ -419,7 +436,7 @@
           detach: yes
           restart: yes
           restart_policy: unless-stopped
-          #entrypoint: sleep 3000
+          # entrypoint: sleep 3000
           ports:
           - "5000:5000"
           volumes:
@@ -429,7 +446,7 @@
               REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/domain.crt"
               REGISTRY_HTTP_TLS_KEY: "/certs/domain.key"       
 
-      # Perform manually as this restarts the running docker process on the installer node
+      # Perform manually as this restarts the running docker process on the Ansible node
       - name: Restart docker for registry
         shell: systemctl restart docker
         become: true
@@ -439,7 +456,7 @@
           docker info | grep -i -a1 Insecure 
         register: docker_insecure
         failed_when: '"{{ groups[''installer''][0] }}" not in docker_insecure.stdout'
-      when: '"{{ master_node_for_registry }}" == "{{ groups[''installer''][0] }}"'
+        when: '"{{ master_node_for_registry }}" == "{{ groups[''installer''][0] }}"'
 
 # Switch to Nodes
 # Allow the nodes of the cluster to access the regsitry by certificate
@@ -450,16 +467,18 @@
   become_user: root
   gather_facts: true
   any_errors_fatal: true
-  tags: [never, continue]
+  tags: 
+    - never
+    - continue
   # Only when the Registry is installed on the installer node.
   # Otherwise, its assumed the registry is external and already defined.
 
   tasks:
     - block:
-      - name: Create Docker cert directory on cluster
+      - name: Create Docker cert directory on Ansible server
         shell: "mkdir -p /etc/docker/certs.d/{{ groups['installer'][0] }}:5000"
 
-      - name: Set ownership of cluster Docker cert directory to 'installer'
+      - name: Set ownership of Docker cert directory to 'installer'
         shell: "chown -R {{ ansible_user }}:{{ ansible_user }} /etc/docker/certs.d/{{ groups['installer'][0] }}:5000"
       when: '"{{ master_node_for_registry }}" == "{{ groups[''installer''][0] }}"'
 
@@ -495,19 +514,24 @@
           msg: "{{ cert_path.stdout_lines }}"
       when: '"{{ master_node_for_registry }}" == "{{ groups[''installer''][0] }}"'
 
+# Install OpenEBs block storage
 - name: Install Storage Class - if required
   hosts: "{{ groups['installer'][0] }}"
   become: false
   gather_facts: true
-  tags: [never, continue, extras]
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  tags: 
+    - never
+    - continue  
     
   tasks:
+    # Retrieve Yq
     - name: PreReq Yq
-      shell: wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+      shell: wget https://github.com/mikefarah/yq/releases/latest/yq_linux_amd64.tar.gz -qO - | tar xz && mv yq_linux_amd64 /usr/bin/yq
       become: true
 
+    # Check SC
     - name: Check storage class
       shell: kubectl get sc -A | grep "(default)"
       register: sc
@@ -523,11 +547,13 @@
         - helm install --namespace openebs openebs openebs/openebs
       when: "'default' not in sc.stdout"
 
+    # Set Open EBS as default sc
     - name: Set openEBs as default storageclass
       shell: |
         kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
       when: "'default' not in sc.stdout"
 
+    # Check OpenEBS storage class
     - name: Check Openebs storage class
       shell: kubectl get sc | grep default
       register: openebs
@@ -542,7 +568,6 @@
   become_method: sudo
   become_user: root
   gather_facts: true
-  tags: [reset, never]
   tasks:
     - name:  rm helm
       ignore_errors: true
@@ -552,14 +577,16 @@
       - rm ~{{ ansible_user }}/get_helm.sh;
       - rm /usr/local/bin/helm;
       - rm -rf /etc/docker/certs.d/{{ groups['installer'][0] }} 
+  tags: 
+    - reset
+    - never
 
-- name: Installer Hosts Reset
+- name: Docker / k8s Reset
   hosts: "{{ groups['installer'][0] }}"
   become: true
   become_method: sudo
   become_user: root
   gather_facts: true
-  tags: [reset, never]
   tasks:
     - name:  rm docker and kubectl
       ignore_errors: true
@@ -576,3 +603,6 @@
       - rm -rf ~/.kube;
       - rm -rf ~/installer/.kube;
       - groupdel docker
+  tags: 
+    - reset
+    - never
