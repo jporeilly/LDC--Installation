@@ -12,6 +12,20 @@
     ansible_user: k8s
     change_dns: true
     dns_server: 10.0.0.254 # SkyTap DNS
+    packages:
+      - apt-transport-https
+      - apt-utils
+      - bash-completion
+      - ca-certificates
+      - curl
+      - device-mapper-persistent-data
+      - gnupg-agent
+      - lvm2
+      - net-tools
+      - python3-pip
+      - python3-setuptools
+      - software-properties-common
+      - wget
     ansible_python_interpreter: /usr/bin/python3
  
   tasks:
@@ -34,13 +48,14 @@
      tags:
        - install  
 
-  # Install Commmon Utils
+   # Install Commmon Utils
    - name: Install Common Packages
-     package:
-      name: [net-tools,bash-completion,wget,curl,apt-utils,lvm2,device-mapper-persistent-data]
-      state: present
-     ignore_errors: True
-     tags: 
+     apt:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+      ignore_errors: true
+     tags:
        - install
 
    # Selinux must be forced to Python2 it does not work in Python3 state: latest

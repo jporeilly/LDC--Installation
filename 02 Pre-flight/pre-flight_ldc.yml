@@ -77,22 +77,18 @@
         echo "supersede domain-name-servers {{ dns_server }};" >> /etc/dhcp/dhclient.conf
       register: dhcp_update
 
-    # Reboot Nodes and test
-    - name: Reboot hosts if required
+    # Reboot iniated by Ansible
+    - name: Reboot the Debian or Ubuntu server
       reboot:
-        msg: "Reboot initiated by Ansible"
+        msg: "Reboot initiated by Ansible due to kernel updates"
         connect_timeout: 5
-        reboot_timeout: 600
+        reboot_timeout: 300
         pre_reboot_delay: 0
         post_reboot_delay: 30
-        test_command: whoami
-      when: 
-        - dhcp_update is not skipped
-
-    # Ping servers
-    - name: Ping servers in hosts.yml after reboot
-      ping:
-      when: dhcp_update is defined  
+        test_command: uptime
+      when: dhcp_update is not skipped
+      tags: 
+       - reboot   
 
 # Install Helm3 on all hosts 
 - name: Install helm on all hosts 
@@ -103,6 +99,7 @@
   gather_facts: false
 
   tasks:
+    # Check Helm version
     - name: Check Helm version
       shell: helm version
       register: helm_version
@@ -110,7 +107,8 @@
       tags: 
         - helm
 
-    - name: Get Helm
+    # Execute Helm install script
+    - name: Download & Execute helm.sh
       get_url:
          url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
          dest: ./get_helm.sh
@@ -118,7 +116,8 @@
       when: helm_version.rc != 0
       tags: 
         - helm
-       
+
+    # Install Helm   
     - name: Install Helm
       shell: ./get_helm.sh
       when: "'not found' in helm_version.stderr"
@@ -247,37 +246,75 @@
   become_method: sudo
   become_user: root
   gather_facts: true
-  tags: docker
   vars:
     ansible_python_interpreter: /usr/bin/python3
     docker_home: /installers/docker
+    docker_packages:
+        - docker-ce
+        - docker-ce-cli 
+        - containerd.io
+    docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
+    docker_repo: deb https://download.docker.com/linux/ubuntu focal stable    
     any_errors_fatal: true
+  tags: 
+    - docker
 
   tasks:
+    # Install Aptitude
+    - name: Install aptitude using apt
+      apt: 
+       name: aptitude 
+       state: latest 
+       update_cache: yes 
+       force_apt_get: yes
+      tags:
+        - install
+
     # Create a non-root Docker Group (Best Practice)
     - name: Create group for non-root docker
       shell: |
         addgroup docker;
         usermod {{ local_user }} -aG docker;
 
+    # Check for Docker
     - name: Check for Docker
       shell: which docker
       ignore_errors: true
       register: docker_exists
       tags: 
         - info
-      
-    - name: Install Docker
-      apt: 
-        name: docker.io
-      when: docker_exists is failed
-      tags: [install] 
 
-    - name: Stop docker if running
+    # Add Docker GPG key
+    - name: Add Docker GPG key
+      apt_key:
+       url: "{{ docker_gpg_url }}"
+       state: present
+      tags:
+        - install
+
+    # Add Docker Repository
+    - name: Add Docker Repository
+      apt_repository:
+       repo: "{{ docker_repo }}"
+       state: present    
+
+    # Install Docker
+    - name: Install Docker
+      apt:
+        name: "{{ docker_packages }}"
+        state: present
+        update_cache: yes
+      when: docker_exists is failed  
+      tags: 
+        - install   
+
+    # Stop Docker
+    - name: Stop Docker if running
       shell: systemctl stop docker
       ignore_errors: true
       when: docker_exists is defined 
 
+    # 
     - name: Create /etc/docker directory
       ignore_errors: true
       file:
@@ -317,9 +354,11 @@
   become: false
   gather_facts: true
   any_errors_fatal: true
-  tags: [registry, continue]
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  tags: 
+    - registry
+    - continue
   # Only when the Registry is installed on the installer node.
   # Otherwise, its assumed the registry is external and already defined.
 
