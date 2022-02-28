@@ -270,7 +270,7 @@
       tags:
         - install
 
-    # Create a non-root Docker Group (Best Practice)
+    # Create a non-root Docker Group & add 'Installer' (Best Practice)
     - name: Create group for non-root docker
       shell: |
         addgroup docker;
