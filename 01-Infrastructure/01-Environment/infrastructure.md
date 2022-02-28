@@ -215,7 +215,7 @@ Note: By default, your SSH server is listening on port 22.
 sudo apt-get install net-tools
 netstat -tulpn | grep 22^
 ```
-If you are using UFW as a default firewall on your Ubuntu 18.04 host, it is likely that you need to allow SSH connections on your host:
+If you are using UFW as a default firewall on your Ubuntu 20.04 host, it is likely that you need to allow SSH connections on your host:
 ```
 sudo ufw status
 ```
@@ -317,7 +317,7 @@ ssh-keygen
 ```
 Note: keys are located in .ssh directory. 2 keys: id_rsa (private) id_rsa.pub (public)
 
-``copy over key to k8s user on LDOS nodes:``
+``copy over key to k8s user on LDC nodes:``
 ```
 ssh-copy-id k8s@10.0.0.101
 ssh-copy-id k8s@10.0.0.102
