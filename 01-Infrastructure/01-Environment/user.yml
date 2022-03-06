@@ -1,39 +1,4 @@
 ---
-# create user account & assign sudo with passwordless.
-- name: create user account & assign sudo with passwordless
-  hosts: users
-  become: yes
-  vars_prompt:
-   - name: "k8s"
-     prompt: "Account for {{ new_user }} will be created on hosts."
-     private: no
-  tasks:
-    - name: Create {{ new_user }} account.
-      user:
-        name: "{{ new_user }}"
-        createhome: yes
-        shell: /bin/bash
-        append: yes
-        state: present 
-
-    - name: Assign sudo to {{ new_user }}.
-      file:
-        path: "/etc/sudoers.d/{{ new_user }}"
-        state: touch
-        mode: '0600'
-
-    - name: "Setting up Sudo without Password for user {{ new_user }}."
-      lineinfile:
-        dest: "/etc/sudoers.d/{{ new_user }}"
-        line: '{{ new_user }}  ALL=(ALL) NOPASSWD: ALL'
-        validate: 'visudo -cf %s'
-
-    - name: Confirm {{ new_user }}.
-      shell: id "{{ new_user }}"
-      register: new_user_created
-    - debug:
-        msg: "{{ new_user_created.stdout_lines[0] }}"
-
 # generate ssh and copy to nodes.
 - name: Generate SSH key
   hosts: "{{ groups['installer'][0] }}"
@@ -46,7 +11,7 @@
       prompt: "Enter the passphrase for the SSH key"
 
   tasks:
-    - name: generate SSH key "{{ssh_key_filename}}"
+    - name: Generate SSH key "{{ssh_key_filename}}"
       user:
         name: "{{ansible_user}}"
         generate_ssh_key: yes
@@ -56,8 +21,32 @@
         ssh_key_passphrase: "{{ssh_passphrase}}"
         force: no
 
-    - name: Set ssh authorized key.
+    - name: Deploy SSH authorized key.
       authorized_key:
-        user: "{{ new_user }}"
+        user: "{{ ansible_user }}"
         state: present
-        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"         
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"      
+
+# Assign sudo with passwordless.
+- name: Assign sudo with passwordless
+  hosts: "{{ groups['kube-node'] }}"
+  become: yes
+  vars:
+    user: k8s
+
+  tasks:
+    - name: Assign sudo to {{ user }}.
+      file:
+        path: "/etc/sudoers"
+        state: touch
+        mode: '0600'
+
+    - name: "Setting up Sudo without Password for {{ user }}."
+      lineinfile:
+        dest: "/etc/sudoers"
+        line: '{{ user }}  ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+
+
+
+   
