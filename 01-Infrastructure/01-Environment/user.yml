@@ -1,0 +1,40 @@
+---
+# create user account & assign sudo with passwordless.
+- hosts: users
+  become: yes
+  vars_prompt:
+   - name: "k8s"
+     prompt: "Account for {{ new_user }} will be created on hosts."
+     private: no
+  tasks:
+    - name: Create {{ new_user }} account.
+      user:
+        name: "{{ new_user }}"
+        createhome: yes
+        shell: /bin/bash
+        append: yes
+        state: present 
+		
+    - name: Assign sudo to {{ new_user }}.
+      file:
+        path: "/etc/sudoers.d/{{ new_user }}"
+        state: touch
+        mode: '0600'
+		
+    - name: "Setting up Sudo without Password for user {{ new_user }}."
+      lineinfile:
+        dest: "/etc/sudoers.d/{{ new_user }}"
+        line: '{{ new_user }}  ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+		
+    - name: Set ssh authorized key.
+      authorized_key:
+         user: "{{ new_user }}"
+         state: present
+         key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+		 
+    - name: Confirm {{ new_user }}.
+      shell: id "{{ new_user }}"
+      register: new_user_created
+    - debug:
+        msg: "{{ new_user_created.stdout_lines[0] }}"
