@@ -1,5 +1,5 @@
 ---
-# generate ssh and copy to nodes.
+# Generate ssh key and distribute.
 - name: Generate SSH key
   hosts: "{{ groups['installer'][0] }}"
   connection: local
@@ -41,12 +41,8 @@
         state: touch
         mode: '0600'
 
-    - name: "Setting up Sudo without Password for {{ user }}."
+    - name: "Setting up Sudo Passwordless for {{ user }}."
       lineinfile:
         dest: "/etc/sudoers"
         line: '{{ user }}  ALL=(ALL) NOPASSWD: ALL'
-        validate: 'visudo -cf %s'
-
-
-
-   
+        validate: 'visudo -cf %s'   
