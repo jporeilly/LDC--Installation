@@ -75,34 +75,10 @@
      tags: 
        - selinux
    
-   # Not really required as tasks carried out by Kubespray
-   - name: Disable SWAP (1/2)
-     shell: |
-      swapoff -a
-
-   - name: Disable SWAP in fstab (2/2)
-     replace:
-        path: /etc/fstab
-        regexp: '^([^#].*?\sswap\s+.*)$'
-        replace: '# \1'
-        tags: 
-          - swap
-
    # easy option :)  Otherwise open Master / Worker ports for network - Calico 
    - name: Turn off firewall for kubernetes Install
      command: systemctl disable firewalld
 
-   # Uncomment if you havent manually edited
-   #- replace: sudo group no password
-   #   path: /etc/sudoers
-   #   regexp: '^#\s*%sudo\s*ALL=\(ALL\)\s*NOPASSWD:\s*ALL$'
-   #   replace: '%sudo        ALL=(ALL)       NOPASSWD: ALL'
-
-   #- replace: sudo group all commands
-   #  path: /etc/sudoers
-   #   regexp: '^%sudo\s*ALL=\(ALL\)\s*ALL$'
-   #   replace: '# %sudo  ALL=(ALL)       ALL'
-   
    # Writes out Hostnames to act as local DNS -  not really required as there's SkyTap DNS
    - lineinfile:
       path: /etc/sysconfig/network
@@ -129,7 +105,7 @@
      register: dhcp_update       
      when: change_dns and ("dhcp_nameserver_entry is not defined" or "'{{ dns_server }}' not in dhcp_nameserver_entry.stdout")
    
-    # Reboot iniated by Ansible
+   # Reboot iniated by Ansible
    - name: Reboot the Debian or Ubuntu server
      reboot:
         msg: "Reboot initiated by Ansible due to kernel updates"
