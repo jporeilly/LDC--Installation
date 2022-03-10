@@ -35,6 +35,12 @@
     user: k8s
 
   tasks:
+    # Ping Nodes
+    - name: Ping Nodes
+      ping:
+      tags: 
+       - info
+
     - name: Assign sudo to {{ user }}.
       file:
         path: "/etc/sudoers"
