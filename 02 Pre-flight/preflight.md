@@ -136,3 +136,24 @@ CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inv
 ``check inventory/mycluster/hosts.yaml``
 
 ---
+
+<em>Accessing K8s Cluster from another Workstation</em>   
+
+By default, Kubespray configures kube-master hosts with access to kube-apiserver via port 6443 as http://127.0.0.1:6443. You can connect to this from one of the master nodes.  
+
+
+``Get IP address of Master-Node-01:``
+```
+# get the  IP address of  master-0
+ip=$(grep -m 1  "master-node-01" hosts-skytap.yml | grep -o '[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}' | head -n 1)
+
+# ssh to master-node-01
+ssh k8s@$ip
+
+# copy /etc/kubernetes/admin.conf file on the local system
+ssh k8s@$ip 'sudo cat /etc/kubernetes/admin.conf' > admin.conf
+```
+``Set the Kubeconfig variable:``
+```
+export KUBECONFIG=admin.conf
+```
