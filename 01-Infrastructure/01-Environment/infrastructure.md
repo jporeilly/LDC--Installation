@@ -28,11 +28,11 @@ Domain Name: skytap.example
 
 | Server Name               | Host              |  IP address | OS               |
 | ------------------------- | ------------------| ----------- | ---------------- |
-| HAProxy                   | haproxy           | 10.0.0.1    | Unbuntu 20.04    |
-| LDC 7.0 Master Node 1     | master-node-01    | 10.0.0.101  | Unbuntu 20.04    |    
-| LDC 7.0 Master Node 2     | master-node-02    | 10.0.0.102  | Unbuntu 20.04    |
-| LDC 7.0 Master Node 3     | master-node-3     | 10.0.0.103  | Unbuntu 20.04    |
-| Ansible Controller        | installer         | 10.0.0.02   | Unbuntu 20.04    | 
+| HAProxy                   | haproxy           | 10.0.0.1    | Unbuntu 20.04LTS |
+| LDC 7.0 Master Node 1     | master-node-01    | 10.0.0.101  | Unbuntu 20.04LTS |    
+| LDC 7.0 Master Node 2     | master-node-02    | 10.0.0.102  | Unbuntu 20.04LTS |
+| LDC 7.0 Master Node 3     | master-node-03    | 10.0.0.103  | Unbuntu 20.04LTS |
+| Ansible Controller        | installer         | 10.0.0.02   | Unbuntu 20.04LTS | 
 |
 
 VM sequence: 
@@ -46,10 +46,10 @@ VM sequence:
 
 ### <font color='red'>LDC 7.0 Master / Worker Nodes</font>  
 
-These servers were deployed as Unbuntu 20.04 LTS server images.
+These servers are deployed as Unbuntu 20.04 LTS headless images.
 Each of the nodes in the cluster has been configured with a 'k8s' user with sudo priviliges.
 
-<font color='green'>The Master and Worker Nodes have been configured with the required user.</font>  
+<font color='green'>The Master and Worker Nodes have been configured with k8s user.</font>  
 
 ``update all nodes:``
 ```

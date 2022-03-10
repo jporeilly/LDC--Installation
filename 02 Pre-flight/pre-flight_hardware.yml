@@ -75,7 +75,7 @@
      tags: 
        - selinux
    
-   # easy option :)  Otherwise open Master / Worker ports for network - Calico 
+   # Easy option :)  Otherwise open Master / Worker ports for network - Calico 
    - name: Turn off firewall for kubernetes Install
      command: systemctl disable firewalld
 
