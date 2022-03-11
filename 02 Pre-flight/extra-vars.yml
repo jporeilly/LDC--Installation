@@ -39,7 +39,7 @@ master_node_for_registry: installer.skytap.example
 master_node_for_registry_port: 5000
 
 # external load balancer for k8s masters
-apiserver_loadbalancer_domain_name: "ha-proxy.skytap.example"
+apiserver_loadbalancer_domain_name: ha-proxy.skytap.example
 
 # =====  DNS ===== 
 # Which name server are you using?
