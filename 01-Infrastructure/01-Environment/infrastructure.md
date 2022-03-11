@@ -31,7 +31,6 @@ Domain Name: skytap.example
 | HAProxy                   | haproxy           | 10.0.0.1    | Unbuntu 20.04LTS |
 | LDC 7.0 Master Node 1     | master-node-01    | 10.0.0.101  | Unbuntu 20.04LTS |    
 | LDC 7.0 Master Node 2     | master-node-02    | 10.0.0.102  | Unbuntu 20.04LTS |
-| LDC 7.0 Master Node 3     | master-node-03    | 10.0.0.103  | Unbuntu 20.04LTS |
 | Ansible Controller        | installer         | 10.0.0.02   | Unbuntu 20.04LTS | 
 |
 

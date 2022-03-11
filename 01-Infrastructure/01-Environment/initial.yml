@@ -4,6 +4,7 @@
   hosts: "{{ groups['installer'][0] }}"
   connection: local
   vars:
+    ansible_user: installer
     ssh_key_filename: id_rsa.pub
 
   vars_prompt:
@@ -21,18 +22,30 @@
         ssh_key_passphrase: "{{ ssh_passphrase }}"
         force: no
 
-    - name: Deploy SSH authorized key.
+    - name: SSH authorized key
       authorized_key:
         user: "{{ ansible_user }}"
         state: present
-        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"      
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}" 
 
-# Assign sudo with passwordless.
-- name: Assign sudo with passwordless
-  hosts: "{{ groups['kube-node'] }}"
+# Deploy SSH key to remote hosts.
+- name: Deploy SSH keys to remote hosts
+  hosts: 
   become: yes
   vars:
-    user: k8s
+    remote_user: k8s
+
+  tasks:
+  - name: SSH authorized key.
+    authorized_key:
+      user: "{{ remote_user }}"
+      state: present
+      key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}" 
+
+# Assign sudo with passwordless.
+- name: Assign sudo group with passwordless
+  hosts: "all"
+  become: yes
 
   tasks:
     # Ping Nodes
@@ -41,14 +54,10 @@
       tags: 
        - info
 
-    - name: Assign sudo to {{ user }}.
-      file:
-        path: "/etc/sudoers"
-        state: touch
-        mode: '0600'
-
-    - name: "Setting up Sudo Passwordless for {{ user }}."
+    - name: Setting up Sudo Passwordless
       lineinfile:
-        dest: "/etc/sudoers"
-        line: '{{ user }}  ALL=(ALL) NOPASSWD: ALL'
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo  ALL=(ALL) NOPASSWD: ALL'
         validate: 'visudo -cf %s'   
