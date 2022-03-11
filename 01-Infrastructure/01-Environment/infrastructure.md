@@ -327,7 +327,6 @@ Note: this will copy over both the private and public keys.
 
 ``test passwordless ssh connection:``
 ```
-ssh -i ~/.ssh/id_rsa  k8s@10.0.0.101
 exit
 ```
 
