@@ -333,6 +333,8 @@ ssh -i ~/.ssh/id_rsa  k8s@10.0.0.101
 exit
 ```
 
+---
+
 #### <font color='red'>Docker Registry Volume</font>  
 
 Installation of the Foundry Platform and LDOS requires that the images are uploaded to a Regsitry to maintain versioning.  In this workshop a locally, self-certified Docker Registry will be created on ``/installers`` volume. 
