@@ -183,7 +183,7 @@
       tags: 
         - kubectl
 
-    # Create home/kube on Ansible Controller
+    # Create home/.kube on Ansible Controller
     - name: Create ~/.kube directory (root on Ansible Controller)
       file:
         path: ~/.kube
@@ -207,7 +207,7 @@
       tags:
         - kubectl  
     
-    # Copy kube/config to /home/installer
+    # Copy .kube/config to /home/installer
     - name: Copy config from root to home
       shell: "cp {{ local_home.stdout }}/.kube/config ~/.kube"
       tags:
