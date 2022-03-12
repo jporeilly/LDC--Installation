@@ -121,6 +121,14 @@ ansible-playbook -i hosts-skytap.yml --extra-vars="@extra-vars.yml" -b -v downlo
 ```
 Note: check that the hosts-skytap.yml & extra-vars.yml have been copied.
 
+There may be an issue with sync of clocks between hardware clock time and system clock.  
+* Run the following command on all Cluster Nodes.
+
+``sync clocks:``
+```
+sudo hwclock --hctosys
+```
+
 There is a sample inventory in the inventory folder. You need to copy that and name your whole cluster (e.g. mycluster). The repository has already provided you the inventory builder to update the Ansible inventory file.  
 
 ``copy inventory/sample as inventory/mycluster:``
