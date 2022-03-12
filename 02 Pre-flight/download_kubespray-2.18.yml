@@ -16,19 +16,6 @@
       tags: 
         - info
 
-    # Update packages
-    - name: Update all packages
-      apt: upgrade=dist force_apt_get=yes
-      tags: 
-        - install
-    
-    # Check if reboot is required
-    - name: Check if a reboot is needed for Debian and Ubuntu boxes
-      register: reboot_required_file
-      stat: path=/var/run/reboot-required get_md5=no 
-      tags:
-       - install
-
     # Check for previous Kubespray download
     - name: Check if {{ release }} is available
       stat:
