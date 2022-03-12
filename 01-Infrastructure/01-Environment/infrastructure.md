@@ -31,7 +31,6 @@ Domain Name: skytap.example
 | HAProxy                   | haproxy           | 10.0.0.1    | Unbuntu 20.04LTS |
 | LDC 7.0 Master Node 1     | master-node-01    | 10.0.0.101  | Unbuntu 20.04LTS |    
 | LDC 7.0 Master Node 2     | master-node-02    | 10.0.0.102  | Unbuntu 20.04LTS |
-| LDC 7.0 Master Node 3     | master-node-03    | 10.0.0.103  | Unbuntu 20.04LTS |
 | Ansible Controller        | installer         | 10.0.0.02   | Unbuntu 20.04LTS | 
 |
 
@@ -321,7 +320,6 @@ Note: keys are located in .ssh directory. 2 keys: id_rsa (private) id_rsa.pub (p
 ```
 ssh-copy-id k8s@10.0.0.101
 ssh-copy-id k8s@10.0.0.102
-ssh-copy-id k8s@10.0.0.103
 ```
 Password: lumada
 Note: this will copy over both the private and public keys.
@@ -329,9 +327,10 @@ Note: this will copy over both the private and public keys.
 
 ``test passwordless ssh connection:``
 ```
-ssh -i ~/.ssh/id_rsa  k8s@10.0.0.101
 exit
 ```
+
+---
 
 #### <font color='red'>Docker Registry Volume</font>  
 
