@@ -27,6 +27,18 @@ The following playbooks are run:
 #### cluster.yml
 * installs and configures k8s-1.22.5
 
+#### pre-flight_ldc.yml
+* Update packages
+* Ensure Map Max count > 262144
+* Install Helm - all Nodes
+* Prepare kubeconfig
+* Install jq
+* Install kubectl
+* Configure kubectl for 'installer' access
+* Install Docker
+* Configure a Docker insecure Registry - Ansible Controller
+* Copy over certs to 'installer'
+* Install OpenEBS storage class
 ---
 
 <em>Run the playbook - pre-flight_hardware.yml</em>  
@@ -176,5 +188,41 @@ sed -i "s/127.0.0.1/$ip/g" admin.conf
 ```
 kubectl get namespace
 ```
+
+
+
+---
+
+<em>Run the playbook - pre-flight_ldc.yml</em>      
+This will update, install and configure the various required packages for Data Catalog 7.0.
+
+``run the playbook - pre-flight_ldc.yml:`` 
+```
+cd /etc/ansible/playbooks
+ansible-playbook -i hosts-skytap.yml --extra-vars="@extra-vars.yml" -b -v pre-flight_ldc.yml
+```
+
+---
+
+<em>Configure Registry</em>  
+Notice that the last few playbooks haven't run.  To complete the playbook tasks:
+
+``restart Docker:``
+```
+systemctl status docker
+systemctl restart docker
+```
+Note: This is really just a check of the docker service.
+
+``to 'log' the 'installer' user out and in:`` 
+```
+sudo su - installer 
+```
+``re-run the playbook - pre-flight_ldc.yml:`` 
+```
+cd /etc/ansible/playbooks
+ansible-playbook -i hosts-skytap.yml --extra-vars="@extra-vars.yml" -b -v pre-flight_ldc.yml -t continue
+```
+Note:  This will pick up the playbook from the continue tag onwards.
 
 ---
