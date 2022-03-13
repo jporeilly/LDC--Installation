@@ -20,7 +20,9 @@ bin_ansible_callbacks: True
 local_user: installer
 user_home: /home/installer
 
-# ===== METRICS SERVER =====
+# ===== ADDONS =====
+# Kubespray also offers to easily enable popular kubernetes add-ons. 
+# You can modify the list of add-ons in inventory/mycluster/group_vars/k8s_cluster/addons.yml
 # Install metrics-server for K8s (top nodes, top pods)
 metrics_server_enabled: true
 
@@ -35,6 +37,8 @@ kubeconfig_localhost: true
 # NOTE: The controller host name in the admin.conf file might be a private IP. 
 # If so, change it to use the controller's public IP or the cluster's load balancer.
 
+# ===== NETWORKS =====
+# Default kube_network_plugin is set to 'calico'
 
 # ===== REGISTRY =====
 # Python for pip and s3 cli
