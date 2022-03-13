@@ -260,16 +260,6 @@
     - docker
 
   tasks:
-    # Install Aptitude
-    - name: Install aptitude using apt
-      apt: 
-       name: aptitude 
-       state: latest 
-       update_cache: yes 
-       force_apt_get: yes
-      tags:
-        - install
-
     # Create a non-root Docker Group & add 'Installer' (Best Practice)
     - name: Create group for non-root docker
       shell: |
@@ -402,7 +392,6 @@
   tags: 
     - never
     - continue
-
 
   # This configures a self-signed private Docker Registry, i.e.  the cerificate to authorize users to access the Registry is self-signed. 
   # Every Docker daemon needs to trust that certificate, so copied over to the Cluster Nodes.

@@ -14,6 +14,7 @@
     dns_server: 10.0.0.254 # SkyTap DNS
     packages:  # Kubespray requirements.txt
       - apparmor
+      - aptitude
       - apt-transport-https
       - apt-utils
       - aufs-tools
