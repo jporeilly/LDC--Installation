@@ -111,6 +111,8 @@ Kubespray provides:
 * Cert-manager 1.5.4
 * Kubernetes Dashboard v2.4.0
 
+Kubespray also offers to easily enable popular kubernetes add-ons. You can modify the list of add-ons in ``inventory/mycluster/group_vars/k8s_cluster/addons.yml``.
+
 ``run the download_kubespray.yml playbook:``
 ```
 cd /etc/ansible/playbooks

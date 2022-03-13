@@ -1,5 +1,5 @@
 ---
-# The following values override the Kubespray 2.18 vars 
+# The following values override the default Kubespray 2.18 vars when added to the command line.
 
 # Change default path to store Docker data
 docker_daemon_graph: "/var/lib/docker"
@@ -10,19 +10,31 @@ ansible_ssh_private_key_file: "~/.ssh/id_rsa"
 ansible_ssh_private_key_file_name: "id_rsa"
 ansible_user: k8s
 
-# used for certificate home for docker registry (copied to remote hosts)
-local_user: installer
-user_home: /home/installer
-
-# ===== Metrics Server
-# Install metrics-server for K8s (top nodes, top pods)
-metrics_server_enabled: true
-
 # Ansible: Use the YAML callback plugin for cleaner output
 stdout_callback: yaml
 
 # Use the stdout_callback when running ad-hoc commands.
 bin_ansible_callbacks: True
+
+# Used for certificate home for docker registry (copied to remote hosts)
+local_user: installer
+user_home: /home/installer
+
+# ===== METRICS SERVER =====
+# Install metrics-server for K8s (top nodes, top pods)
+metrics_server_enabled: true
+
+# ===== KUBECTL =====
+# If kubectl_localhost is enabled, kubectl will download onto /usr/local/bin/ and setup with bash completion. 
+# A helper script inventory/mycluster/artifacts/kubectl.sh also created for setup with below admin.conf.
+# If kubeconfig_localhost enabled admin.conf will appear in the inventory/mycluster/artifacts/ directory after deployment.
+# The location where these files are downloaded to can be configured via the artifacts_dir variable.
+kubectl_localhost: true
+kubeconfig_localhost: true
+
+# NOTE: The controller host name in the admin.conf file might be a private IP. 
+# If so, change it to use the controller's public IP or the cluster's load balancer.
+
 
 # ===== REGISTRY =====
 # Python for pip and s3 cli
