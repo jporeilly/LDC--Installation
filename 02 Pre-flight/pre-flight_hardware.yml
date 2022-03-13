@@ -12,19 +12,25 @@
     ansible_user: k8s
     change_dns: true
     dns_server: 10.0.0.254 # SkyTap DNS
-    packages:
+    packages:  # Kubespray requirements.txt
+      - apparmor
       - apt-transport-https
       - apt-utils
+      - aufs-tools
       - bash-completion
       - ca-certificates
+      - conntrack
       - curl
       - gnupg-agent
+      - libseccomp2
       - lvm2
       - net-tools
+      - python3-apt
       - python3-pip
       - python3-setuptools
       - software-properties-common
       - wget
+
     ansible_python_interpreter: /usr/bin/python3
  
   tasks:

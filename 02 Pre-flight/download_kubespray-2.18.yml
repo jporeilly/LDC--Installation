@@ -60,15 +60,15 @@
       tags: 
         - install 
   
-    # Update pip
-    - name: Update pip dependancies
+    # Install dependancies
+    - name: Install k8s dependancies
       pip:
         requirements: requirements.txt
         chdir: "{{ installer_home }}/{{ release }}"
       tags: 
         - install
     
-    # May need to update path  
+    # Copy over extra-vars 
     - name: Copy extra-vars.yml
       copy:
         src: "extra-vars.yml"
@@ -76,7 +76,7 @@
       tags: 
         - install
 
-    # May need to update path 
+    # Copy over hosts-skytap.yml 
     - name: Copy hosts-skytap.yml
       copy:
         src: "hosts-skytap.yml"
