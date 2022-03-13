@@ -2,7 +2,7 @@
 
 The following playbooks configure the cluster nodes and installs k8s-1.18.10 using kubespray-2.14.
 
-Prerequisites for the CentOS7 machines:
+Prerequisites for the Ubuntu 20.04LTS machines:
 * A public key generated on your Ansible Controller
 * Key copied to hosts
 * SSH passwordless access on Nodes with root permissions
@@ -12,10 +12,7 @@ The following playbooks are run:
 #### pre-flight_hardware.yml
 * Update packages
 * Install common packages
-* Disable SELinux
-* Disable SWAP
-* Turn off firewall
-* Set hostname
+* Refresh DNS
 * Reboot Nodes
 
 #### extra-vars.yml
