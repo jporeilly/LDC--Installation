@@ -1,4 +1,4 @@
-## <font color='red'>Preflight - Hardware</font>  
+## <font color='red'>Preflight Tasks</font>  
 
 The following playbooks configure the cluster nodes and installs k8s-1.18.10 using kubespray-2.14.
 
@@ -118,6 +118,14 @@ Kubespray provides:
 * Cert-manager 1.5.4
 * Kubernetes Dashboard v2.4.0
 
+---
+
+<em>Download Kubespray 2.18</em> 
+
+Pre-requistes:
+* Firewalls are not managed by kubespray. You'll need to implement appropriate rules as needed. You should disable your firewall in order to avoid any issues during deployment.  
+* If kubespray is ran from a non-root user account, correct privilege escalation method should be configured in the target servers and the ansible_become flag or command parameters --become or -b should be specified. 
+
 Kubespray also offers to easily enable popular kubernetes add-ons. You can modify the list of add-ons in ``inventory/mycluster/group_vars/k8s_cluster/addons.yml``.
 
 ``run the download_kubespray.yml playbook:``
@@ -136,6 +144,51 @@ sudo hwclock --hctosys
 ```
 
 There is a sample inventory in the inventory folder. You need to copy that and name your whole cluster (e.g. mycluster). The repository has already provided you the inventory builder to update the Ansible inventory file.  
+
+---
+
+<em>Run cluster.yml</em> 
+
+``run the cluster.yml playbook:``
+```
+cd /installers/kubespray-release-2.14
+ansible-playbook -i hosts-skytap.yml --extra-vars "@extra-vars.yml"  -b -v cluster.yml
+```
+Note: this is going to take about 5-7 mins..
+
+<font color='green'>The following section is for Reference only.</font>
+
+``if you need to reset the k8s deployment:``
+```
+cd /installers/kubespray-release-2.18
+ansible-playbook -i hosts-skytap.yml --extra-vars="@extra-vars.yml" reset.yml -b -v --become-user=root
+```
+Note: This will still keep some residual config files, IP routing tables, etc
+
+``rest kubernetes cluster using kubeadm:``
+```
+kubeadm reset -f
+```
+``remove all the data from all below locations:``
+```
+sudo rm -rf /etc/cni /etc/kubernetes /var/lib/dockershim /var/lib/etcd /var/lib/kubelet /var/run/kubernetes ~/.kube/*
+```
+``flush all the firewall (iptables) rules (as root):``
+```
+sudo -i
+iptables -F && iptables -X
+iptables -t nat -F && iptables -t nat -X
+iptables -t raw -F && iptables -t raw -X
+iptables -t mangle -F && iptables -t mangle -X
+```
+``restart the Docker service:``
+```
+systemctl restart docker
+```
+
+---
+
+<em>Create an inventory file</em> 
 
 ``copy inventory/sample as inventory/mycluster:``
 ```
@@ -183,8 +236,6 @@ sed -i "s/127.0.0.1/$ip/g" admin.conf
 ```
 kubectl get namespace
 ```
-
-
 
 ---
 
