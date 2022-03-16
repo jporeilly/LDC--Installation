@@ -26,28 +26,6 @@
       tags:
        - install 
     
-    # Configure various Linux networking and system settings
-    - name: Get /etc/sysctl.conf
-      shell: cat /etc/sysctl.conf | grep max_map_count 
-      ignore_errors: true
-      register: max_map_count
-      tags: 
-        - elastic
-
-    # Elasticsearch requires a max map count > 262144
-    # Details: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
-    - name: Expand max_map_count 
-      shell: |
-        cp /etc/sysctl.conf /etc/sysctl.conf.{{ 10000 | random }}.bak
-        echo "vm.max_map_count=262144" >> /etc/sysctl.conf
-        sysctl -p
-      register: map_max_update
-      when: 
-        - max_map_count.stdout | int < 262144 
-        # May need check if large enough 
-      tags: 
-        - elastic
-
     # Retrieve sudoers path
     - name: Get sudoers secure_path
       shell: cat /etc/sudoers | grep secure_path
@@ -78,7 +56,7 @@
       register: dhcp_update
 
     # Reboot iniated by Ansible
-    - name: Reboot the Debian or Ubuntu server
+    - name: Reboot the cluster
       reboot:
         msg: "Reboot initiated by Ansible due to kernel updates"
         connect_timeout: 5
@@ -168,7 +146,7 @@
       apt:
         name: jq
       when: ansible_distribution == "Ubuntu"
-    
+
     # Install kubectl
     - name: Install kubectl
       raw: sudo snap install kubectl --classic
@@ -482,12 +460,12 @@
 
   tasks:
     - block:
-      #    
+      # Need the keys   
       - name: Write the clusters host key to known hosts
         connection: local
         shell: "ssh-keyscan -H {{ inventory_hostname }} >> ~/.ssh/known_hosts"
 
-      - name: Transfer file from installer to cluster
+      - name: Transfer certs from installer to cluster
         shell: scp -i {{ ansible_ssh_private_key_file }} /home/{{ local_user }}/certs/domain.crt {{ansible_user }}@{{ inventory_hostname }}:/etc/docker/certs.d/{{ groups['installer'][0] }}:5000
         delegate_to: "{{ groups['installer'][0] }}"
       
@@ -515,12 +493,12 @@
     - continue  
     
   tasks:
-    # Retrieve Yq
+    # Install Yq
     - name: PreReq Yq
-      shell: wget https://github.com/mikefarah/yq/releases/latest/yq_linux_amd64.tar.gz -qO - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+      shell: wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
       become: true
 
-    # Check SC
+    # Check StorageClassyes
     - name: Check storage class
       shell: kubectl get sc -A | grep "(default)"
       register: sc

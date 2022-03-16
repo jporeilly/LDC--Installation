@@ -57,11 +57,6 @@ Note the required vars:
 - dns_server: 10.0.0.254  <font color='green'> # SkyTap DNS </font> 
 - ansible_python_interpreter: /usr/bin/python  
 
-Note: if you are getting a mismatch on the urllib3 or chadet:
-```
-sudo python3 -m pip install --upgrade requests
-```
-
 ---
 
 <em>Define the playbook - extra-vars.yml</em>   
