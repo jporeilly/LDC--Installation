@@ -48,7 +48,7 @@
        - updates
 
    # Upgrade Packages
-   - name: Upgrade all packages on servers
+   - name: Upgrade all packages on Cluster Nodes
      apt: upgrade=dist force_apt_get=yes
      tags: 
        - updates
