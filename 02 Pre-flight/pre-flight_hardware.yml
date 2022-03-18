@@ -43,13 +43,18 @@
    
    # Update Packages
    - name: Update apt repo and cache on Cluster Nodes
-     apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+     apt: 
+      update_cache=yes 
+      force_apt_get=yes 
+      cache_valid_time=3600
      tags: 
        - updates
 
    # Upgrade Packages
    - name: Upgrade all packages on Cluster Nodes
-     apt: upgrade=dist force_apt_get=yes
+     apt: 
+      upgrade=dist 
+      force_apt_get=yes
      tags: 
        - updates
   
