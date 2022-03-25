@@ -48,13 +48,16 @@ kubeconfig_localhost: true
 # This node will also be used to host the shared registry for k8s
 # NOTE:  This can installed locally, however, must be accessible externally to complete the installation.
 #        The cerificate must be created with the external DNS name.
-master_node_for_registry: installer.skytap.example
+registry_domain: installer.skytap.example
 
 # master_node_for_registry: {{ groups['kube-master'][0] }}
-master_node_for_registry_port: 5000
+registry_port: 5000
 
 # external load balancer for k8s masters
 apiserver_loadbalancer_domain_name: ha-proxy.skytap.example
+loadbalancer_apiserver:
+   address: 10.0.0.1
+   port: 6443
 
 # =====  DNS ===== 
 # Which name server are you using?
