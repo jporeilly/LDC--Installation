@@ -24,5 +24,13 @@ The following workshop is intended to highlight an on-premise bare-metal install
 * Licenses
 
 
+<font color='teal'>For the latest updates execute the following script: ~/Latest--Workshop ./clone_latest_workshop.sh </font>
 
+#### <em> Changelog </em>
+
+| Artifact                   | Date     |  
+| ---------------------------| ---------| 
+| Added Licenses             | 25/02/22 | 
+| GitHub clone script        | 24/03/22 |               
+|
  
