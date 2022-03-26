@@ -206,7 +206,7 @@
       replace: 
          path: ~/.kube/config
          regexp: '(\s+)127.0.0.1(\s+.*)?$'
-         replace: '\10.0.0.101\1'
+         replace: '10.0.0.101'
          backup: yes
     
     # Test kubectl config
