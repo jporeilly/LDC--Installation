@@ -196,7 +196,7 @@
     - name: Get IP of master-node-01
       shell: |
              ip=${{ groups['kube-master'][0] }}
-             sed -i "s/127.0.0.1/$ip/g" > ~/.kube/config
+             sed -i 's/127.0.0.1/$ip/g' > ~/.kube/config
     
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
