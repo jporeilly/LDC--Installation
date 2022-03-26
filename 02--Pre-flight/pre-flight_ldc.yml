@@ -201,11 +201,10 @@
       tags:
         - kubectl
 
-    # Get the  IP address of  master-node-01
     # Replace IP in kube/config
-    - name: Replace IP in ~/kube/config
+    - name: Replace IP in ~/.kube/config
       replace: 
-         path: ~/kube/config
+         path: ~/.kube/config
          regexp: '127.0.0.1'
          replace: "{{ groups['kube-master'][0] }}"
     
