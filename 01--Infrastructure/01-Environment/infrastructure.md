@@ -312,7 +312,7 @@ You will need the IPs of the Cluster Nodes - refer to table above.
 ``generate ssh key:``
 ```
 cd
-ssh-keygen
+ssh-keygen -t rsa
 ```
 Note: keys are located in .ssh directory. 2 keys: id_rsa (private) id_rsa.pub (public)
 
