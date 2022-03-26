@@ -180,12 +180,20 @@
       tags: 
         - kubectl
     
-    # Transfer kube / config from master root to Installer on Ansible Controller
+    # Transfer kube / config from master root to root on Ansible Controller
     - name: Transfer config file from master cluster to 'root' .kube
       raw: scp -i {{ ansible_ssh_private_key_file }} {{ ansible_user }}@{{ groups['kube-master'][0] }}:/home/{{ ansible_user }}/.kube/config ~/.kube/config
       become: false
       tags: 
         - kubectl
+
+    # Replace IP in root .kube/config
+    - name: Replace IP in ~/.kube/config
+      replace: 
+         path: ~/.kube/config
+         regexp:  'https://127.0.0.1:6443'
+         replace: "https://10.0.0.101:6443"
+         backup: yes     
 
     # Now get config from {{ local_home.stdout }}
     - name: Create ~./kube directory
@@ -195,28 +203,12 @@
       tags:
         - kubectl  
 
-    # Replace IP in root .kube/config
-    - name: Replace IP in ~/.kube/config
-      replace: 
-         path: ~/.kube/config
-         regexp:  'https://127.0.0.1:6443'
-         replace: "https://10.0.0.101:6443"
-         backup: yes   
-    
     # Copy .kube/config to /home/installer
     - name: Copy config from root to home
       shell: "cp {{ local_home.stdout }}/.kube/config ~/.kube"
       tags:
         - kubectl
 
-    # Replace IP in kube/config
-    - name: Replace IP in ~/.kube/config
-      replace: 
-         path: ~/.kube/config
-         regexp:  'https://127.0.0.1:6443'
-         replace: "https://10.0.0.101:6443"
-         backup: yes
-    
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
       shell: "kubectl get nodes"
