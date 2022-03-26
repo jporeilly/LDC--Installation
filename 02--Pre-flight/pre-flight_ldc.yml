@@ -5,6 +5,8 @@
   become_method: sudo
   become_user: root
   gather_facts: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   
   tasks:
     # Ping Nodes
@@ -76,6 +78,9 @@
   become_user: root
   gather_facts: false
 
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
   tasks:
     # Check Helm version
     - name: Check Helm version
@@ -99,7 +104,8 @@
     - name: Install Helm
       shell: ./get_helm.sh
       when: "'not found' in helm_version.stderr"
-      tags: [helm]
+      tags: 
+       - helm
 
 # Switch to Master Node 1
 # Configure kubeconfig on cluster for {{ ansible_user }}
@@ -109,8 +115,10 @@
   become_method: sudo
   gather_facts: false
   any_errors_fatal: true
-  tags: 
-    - kubeconfig
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
   
   tasks:
     # Create kube directory on master node 01
@@ -137,8 +145,10 @@
   become_method: sudo
   gather_facts: true
   any_errors_fatal: true
-  tags: 
-    - kubeconfig
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
   
   tasks:
     # Install Jq
@@ -441,6 +451,8 @@
   become_user: root
   gather_facts: true
   any_errors_fatal: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tags: 
     - never
     - continue
@@ -461,7 +473,11 @@
   gather_facts: false
   hosts:  "{{ groups['kube-node'] }}" 
   any_errors_fatal: true
-  tags: [never, continue]
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tags: 
+   - never
+   - continue
   # Only when the Registry is installed on the installer node.
   # Otherwise, its assumed the registry is external and already defined.
 
