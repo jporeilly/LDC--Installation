@@ -207,7 +207,7 @@
       replace: 
          path: ~/kube/config
          regexp: '127.0.0.1'
-         replace: '{{ groups['kube-master'][0] }}'
+         replace: "{{ groups['kube-master'][0] }}"
     
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
