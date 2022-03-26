@@ -203,10 +203,11 @@
 
     # Get the  IP address of  master-node-01
     # Replace IP in kube/config
-    - name: Get IP of master-node-01
-      shell: |
-             ip=${{ groups['kube-master'][0] }}
-             sed -i 's/127.0.0.1/$ip/g' > ~/.kube/config
+    - name: Replace IP in ~/kube/config
+      replace: 
+         path: ~/kube/config
+         regexp: '127.0.0.1'
+         replace: '{{ groups['kube-master'][0] }}'
     
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
