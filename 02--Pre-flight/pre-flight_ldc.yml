@@ -205,8 +205,8 @@
     - name: Replace IP in ~/.kube/config
       replace: 
          path: ~/.kube/config
-         regexp: '^127\.\0\.0\.1'
-         replace: '10.0.0.101'
+         regexp: '(\s+)127.0.0.1(\s+.*)?$'
+         replace: '\10.0.0.101\1'
          backup: yes
     
     # Test kubectl config
