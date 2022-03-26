@@ -194,6 +194,14 @@
         state: directory
       tags:
         - kubectl  
+
+    # Replace IP in root .kube/config
+    - name: Replace IP in ~/.kube/config
+      replace: 
+         path: ~/.kube/config
+         regexp:  'https://127.0.0.1:6443'
+         replace: "https://10.0.0.101:6443"
+         backup: yes   
     
     # Copy .kube/config to /home/installer
     - name: Copy config from root to home
