@@ -208,35 +208,6 @@
       tags:
         - kubectl
 
-    # Test kubectl config
-    - name: Check kubectl connectivity from installer node to cluster
-      shell: 
-        cmd: |
-          kubectl get nodes
-      register: nodes
-      become: false
-      tags: 
-        - kubectl
-
-    # Display the Nodes
-    - name: Show output from command --> kubectl get nodes
-      debug:
-        msg: "{{ nodes.stdout_lines }}"
-
-    # Check conectivity Ansible --> Cluster
-    - name: Check kubectl connectivity from installer node to cluster
-      shell: 
-        cmd: |
-            kubectl get pods -n kube-system"
-      register: pods
-      become: false
-
-    # Display the Pods
-    - name: Show output from command --> kubectl get pods -n kube-system
-      debug:
-        msg: "{{ pods.stdout_lines }}"
-
-
 # Install Docker locally
 # Best practice not to run Docker as root, so 'installer' is added to docker group
 - name: Install Docker
