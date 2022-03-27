@@ -210,7 +210,9 @@
 
     # Test kubectl config
     - name: Check kubectl connectivity from installer node to cluster
-      shell: "kubectl get nodes"
+      shell: 
+        cmd: |
+          kubectl get nodes
       register: nodes
       become: false
       tags: 
@@ -223,7 +225,9 @@
 
     # Check conectivity Ansible --> Cluster
     - name: Check kubectl connectivity from installer node to cluster
-      shell: "kubectl get pods -n kube-system"
+      shell: 
+        cmd: |
+            kubectl get pods -n kube-system"
       register: pods
       become: false
 
