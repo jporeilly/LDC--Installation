@@ -128,8 +128,8 @@
         state: directory
       become: false
 
-    # Copy over the kube/config to /home/installer  
-    - name: Copy config to {{ ansible_user }} home
+    # Copy over the kube/config to /root .kube 
+    - name: Copy config to {{ ansible_user }} .kube
       shell: "cp ~/.kube/config /home/{{ ansible_user }}/.kube/"
 
     # Replace IP in root .kube/config
@@ -157,7 +157,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
-    tasks:
+  tasks:
     # Install Jq
     - name: Install jq 
       apt:
