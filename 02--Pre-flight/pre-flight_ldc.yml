@@ -132,6 +132,14 @@
     - name: Copy config to {{ ansible_user }} home
       shell: "cp ~/.kube/config /home/{{ ansible_user }}/.kube/"
 
+    # Replace IP in root .kube/config
+    - name: Replace IP in ~/.kube/config
+      replace: 
+         path: ~/.kube/config
+         regexp:  'https://127.0.0.1:6443'
+         replace: "https://10.0.0.101:6443"
+         backup: yes   
+
     # Take ownership of kube/config
     - name: Change config ownership to {{ ansible_user }}
       shell: "chown -R {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config"
@@ -149,8 +157,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
-  
-  tasks:
+    tasks:
     # Install Jq
     - name: Install jq 
       apt:
@@ -186,14 +193,6 @@
       become: false
       tags: 
         - kubectl
-
-    # Replace IP in root .kube/config
-    - name: Replace IP in ~/.kube/config
-      replace: 
-         path: ~/.kube/config
-         regexp:  'https://127.0.0.1:6443'
-         replace: "https://10.0.0.101:6443"
-         backup: yes     
 
     # Now get config from {{ local_home.stdout }}
     - name: Create ~/.kube directory
