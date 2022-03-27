@@ -208,6 +208,26 @@
       tags:
         - kubectl
 
+    # As local user, test kubectl config
+    - name: Check kubectl connectivity from installer node to cluster
+      shell: "kubectl get nodes"
+      register: nodes
+      become: false
+
+    - name: Show output from command --> kubectl get nodes
+      debug:
+        msg: "{{ nodes.stdout_lines }}"
+
+    - name: Check kubectl connectivity from installer node to cluster
+      shell: "kubectl get pods -n kube-system"
+      register: pods
+      become: false
+
+    - name: Show output from command --> kubectl get pods -n kube-system
+      debug:
+        msg: "{{ pods.stdout_lines }}"
+ 
+
 # Install Docker locally
 # Best practice not to run Docker as root, so 'installer' is added to docker group
 - name: Install Docker
