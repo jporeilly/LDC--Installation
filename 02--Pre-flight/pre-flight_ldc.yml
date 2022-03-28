@@ -208,22 +208,29 @@
       tags:
         - kubectl
 
-    # As local user, test kubectl config
+    # As local user, test kubectl config -> Nodes
     - name: Check kubectl connectivity from installer node to cluster
+      become: false
       shell: "kubectl get nodes"
       register: nodes
-      become: false
+      
 
+    # Display output
     - name: Show output from command --> kubectl get nodes
+      become: false
       debug:
         msg: "{{ nodes.stdout_lines }}"
 
+    # As local user, test kubectl config -> Pods
     - name: Check kubectl connectivity from installer node to cluster
+      become: false
       shell: "kubectl get pods -n kube-system"
       register: pods
-      become: false
 
+    
+    # Display output
     - name: Show output from command --> kubectl get pods -n kube-system
+      become: false
       debug:
         msg: "{{ pods.stdout_lines }}"
  
