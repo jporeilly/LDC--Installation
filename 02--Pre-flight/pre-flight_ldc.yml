@@ -252,7 +252,6 @@
         - containerd.io
     docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
     docker_repo: deb https://download.docker.com/linux/ubuntu focal stable    
-    any_errors_fatal: true
   tags: 
     - docker
 
