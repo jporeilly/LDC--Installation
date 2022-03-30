@@ -77,7 +77,10 @@
       regexp: "^{{ ansible_default_ipv4.address }}"
       line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ ansible_hostname }}"
       state: present
-     tags: network,hostname,dns
+     tags: 
+       - network
+       - hostname
+       - dns
       
    # Check for DNS servers
    - name: Get dhcp/dhclient.conf
