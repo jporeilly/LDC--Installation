@@ -30,7 +30,7 @@ The following workshop is intended to highlight an on-premise bare-metal install
 
 | Artifact                   | Date     |  
 | ---------------------------| ---------| 
-| Added Licenses             | 25/02/22 | 
-| GitHub clone script        | 24/03/22 |               
+| Released                   |          | 
+|                            |          |               
 |
  
